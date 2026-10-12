@@ -12,7 +12,7 @@ class HalvingGame():
     def utility(self, state):
         player, number = state
         assert number == 0
-        return number * float("inf")
+        return -player * float("inf")
 
     def actions(self, state):
         return ['/', '-']
@@ -37,10 +37,25 @@ def humanPolicy(game, state):
 def minimaxPolicy(game, state):
     def recurse(state):
         if game.isEnd(state):
-            return (game.utility(state), 'state')
-        choices = [(recurse(game.succ(state, action)), action) for action in game.actions(state)]
-        if game.player == +1:
+            return (game.utility(state), 'none')
+        choices = [(recurse(game.succ(state, action))[0], action) for action in game.actions(state)]
+        if game.player(state) == +1:
             return max(choices)
-        if game.player == -1:
+        elif game.player(state) == -1:
             return min(choices)
-        
+    value, action = recurse(state)
+    print(f"MiniMax says action = {action} and value = {value}")
+    return action
+
+policies = {+1: humanPolicy, -1: minimaxPolicy}
+game = HalvingGame(20)
+state = game.startState()
+
+while not game.isEnd(state):
+    print('='*10, state)
+    player = game.player(state)
+    policy = policies[player]
+    action = policy(game, state)
+    state = game.succ(state, action)
+
+print("utility:{}".format(game.utility(state)))
